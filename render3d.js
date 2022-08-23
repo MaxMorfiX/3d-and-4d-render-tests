@@ -10,56 +10,100 @@ function start3d(typeOfObject) {
         z: {x: cos(d2R(axesAngles.z)), y: sin(d2R(axesAngles.z))}
     };
     
+    let center = {x: 0, y: 0, z: 0, color: 'red', size: 1};
+    
     if(typeOfObject === 'sphere') {
-        returnValue = drawSphere(15, 200, {x: 0, y: 0, z: 0});
+        let returnValue = drawSphere(15, 200, {x: 0, y: 0, z: 0});
         points = returnValue.points;
         lines = returnValue.lines;
     } else if(typeOfObject === 'cube') {
-        drawCube();
+        let returnValue = drawCube(300, center, 
+            lineWidth = 10,
+            pointSize = 3
+        );
+        points = returnValue.points;
+        lines = returnValue.lines;
     }
     
-    points.push({x: 0, y: 0, z: 0, color: 'red'});
+    points.push(center);
     
 //    drawAllToOne(points, points.length - 1);
     
     setInterval(draw, 15);
 //    draw();
 }
-function drawCube() {
-    points = [
-        {x: 0, y: 0, z: 0, size: 5},
-        {x: 0, y: 200, z: 0, size: 5},
-        {x: 200, y: 0, z: 0, size: 5},
-        {x: 200, y: 200, z: 0, size: 5},
-        {x: 0, y: 0, z: 200, size: 5},
-        {x: 0, y: 200, z: 200, size: 5},
-        {x: 200, y: 0, z: 200, size: 5},
-        {x: 200, y: 200, z: 200, size: 5},
-        {x: 100, y: 100, z: 100, color: 'yellow'}
-    ];
-    lines = [
-        [0, 1, 'black', 10],
-        [0, 2, 'black', 10],
-        [0, 4, 'black', 10],
-        [1, 3, 'black', 10],
-        [1, 5, 'black', 10],
-        [2, 6, 'black', 10],
-        [2, 3, 'black', 10],
-        [7, 3, 'black', 10],
-        [7, 5, 'black', 10],
-        [7, 6, 'black', 10],
-        [4, 6, 'black', 10],
-        [4, 5, 'black', 10],
+function drawCube(size, center, lineWidth, pointSize, pointColor, lineColor) {
+    
+    let decor = setSizesAndColors(lineWidth, pointSize, pointColor, lineColor);
+    
+    function setSizesAndColors(lineWidth, pointSize, pointColor, lineColor) {
+        let returnValue = {
+            lineWidth: 1,
+            pointSize: 3,
+            pointColor: 'black',
+            lineColor: 'black'
+        };
         
-        [8, 0],
-        [8, 1],
-        [8, 2],
-        [8, 3],
-        [8, 4],
-        [8, 5],
-        [8, 6],
-        [8, 7]
-    ];
+        if(typeof lineWidth !== 'undefined')
+            returnValue.lineWidth = lineWidth;
+        
+        if(typeof pointSize !== 'undefined')
+            returnValue.pointSize = pointSize;
+        
+        if(typeof pointColor !== 'undefined')
+            returnValue.pointColor = pointColor;
+        
+        if(typeof lineColor !== 'undefined')
+            returnValue.lineColor = lineColor;
+        
+        return {lineWidth, pointSize, lineColor, pointColor};
+    }
+    
+    let points = [];
+    let lines = [];
+    
+    for(let i = 0; i <= 7; i++) {
+        let bin = convert2Bin(i, true);
+        
+        if(bin.length < 2)
+            bin = '00' + bin;
+        else if(bin.length < 3)
+            bin = '0' + bin;
+        
+        let point = {
+            x: parseInt(bin.charAt(2)) * size - size/2 + center.x,
+            y: parseInt(bin.charAt(1)) * size - size/2 + center.y,
+            z: parseInt(bin.charAt(0)) * size - size/2 + center.z,
+            color: decor.pointColor,
+            size: decor.pointSize
+        };
+        
+        points.push(point);
+    }
+    
+    for(let i in points) {
+        
+        i = parseInt(i);
+        
+        if(i < 4) {
+            let line = [i, i+4, decor.lineColor, decor.lineWidth];
+            lines.push(line);
+        }
+        
+        if(i%2 === 0) {
+            let line = [i, i + 1, decor.lineColor, decor.lineWidth];
+            lines.push(line);
+        }
+        
+        if(i === 0 || i === 1 || i === 4 || i === 5) {
+            let line = [i, i + 2, decor.lineColor, decor.lineWidth];
+            lines.push(line);
+        }
+        
+    }
+    
+    return {points, lines};
+    
 }
 function drawSphere(pointCount, radius, center) {
     let ang = 360/pointCount,
@@ -140,14 +184,15 @@ function draw() {
     if(lastPoints !== points || lastLines !== lines) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
+        drawAxes();
+        
         let displayPoints = calcDisplayPoints(points);
         drawLines(displayPoints);
     
         lastLines = lines;
         lastPoints = points;
 
-        drawDisplayPoints(displayPoints);
-//        drawAxes();
+//        drawDisplayPoints(displayPoints);
     }
     
     modify();

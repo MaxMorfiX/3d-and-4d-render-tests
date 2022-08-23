@@ -3,7 +3,7 @@ var ctx = canvas.getContext('2d');
 var fieldH = $('#canvas').height();
 var fieldW = $('#canvas').width();
 var buttons = {};
-var rotateSpeed = 2;
+var rotateSpeed = 1;
 
 var points = [];
 var lines = [];
@@ -16,7 +16,10 @@ var axesMultificatores = {};
 //start2d('circle');
 //start2d('square');
 
-start3d('sphere');
+start3d('cube');
+//start3d('sphere');
+
+//start4d();
 
 
 document.addEventListener('keydown', KeyDown);
@@ -74,7 +77,7 @@ function drawDisplayPoints(displayPoints) {
         let point = displayPoints[i];
         let point3d = points[i];
         
-        let radius = 3;
+        let radius = 1;
         let color = 'black';
         
         if(typeof point3d.color !== 'undefined')
@@ -92,4 +95,15 @@ function drawDisplayPoints(displayPoints) {
         ctx.stroke();
         ctx.closePath();
     }
+}
+
+
+
+function convert2Bin(num, string) {
+  let bin = num.toString(2);
+  
+  if(string)
+      return bin;
+      
+  return parseInt(bin);
 }
