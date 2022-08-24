@@ -71,9 +71,9 @@ function drawCube(size, center, lineWidth, pointSize, pointColor, lineColor) {
             bin = '0' + bin;
         
         let point = {
-            x: parseInt(bin.charAt(2)) * size - size/2 + center.x,
-            y: parseInt(bin.charAt(1)) * size - size/2 + center.y,
-            z: parseInt(bin.charAt(0)) * size - size/2 + center.z,
+            x: parseInt(bin.charAt(2)),
+            y: parseInt(bin.charAt(1)),
+            z: parseInt(bin.charAt(0)),
             color: decor.pointColor,
             size: decor.pointSize
         };
@@ -84,21 +84,26 @@ function drawCube(size, center, lineWidth, pointSize, pointColor, lineColor) {
     for(let i in points) {
         
         i = parseInt(i);
+        let point = points[i];
         
-        if(i < 4) {
+        if(points[i].z === 0) {
             let line = [i, i+4, decor.lineColor, decor.lineWidth];
             lines.push(line);
         }
         
-        if(i%2 === 0) {
+        if(points[i].x === 0) {
             let line = [i, i + 1, decor.lineColor, decor.lineWidth];
             lines.push(line);
         }
         
-        if(i === 0 || i === 1 || i === 4 || i === 5) {
+        if(points[i].y === 0) {
             let line = [i, i + 2, decor.lineColor, decor.lineWidth];
             lines.push(line);
         }
+        
+        point.x = point.x * size - size/2 + center.x;
+        point.y = point.y * size - size/2 + center.y;
+        point.z = point.z * size - size/2 + center.z;
         
     }
     
@@ -184,7 +189,7 @@ function draw() {
     if(lastPoints !== points || lastLines !== lines) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        drawAxes();
+//        drawAxes();
         
         let displayPoints = calcDisplayPoints(points);
         drawLines(displayPoints);
@@ -225,6 +230,26 @@ function modify() {
     checkMove();
 }
 function checkRotate() {
+    
+    if(buttons.mouse) {
+        if(lastmx !== mx || lastmy !== my) {
+            let difference = {
+                x: mx - lastmx,
+                y: my - lastmy
+            };
+            if(lastmx !== mx)
+                points = points = rotatePoints(points, points[points.length - 1], 'xz', rotateSpeed * difference.x);
+            if(lastmy !== my)
+                points = points = rotatePoints(points, points[points.length - 1], 'yz', rotateSpeed * difference.y);
+                points = points = rotatePoints(points, points[points.length - 1], 'yx', rotateSpeed * difference.y);
+        }
+    }
+    
+    lastmx = mx;
+    lastmy = my;
+    
+    
+    
     if(buttons[68])
         points = rotatePoints(points, points[points.length - 1], 'yz', -rotateSpeed);
     if(buttons[65])

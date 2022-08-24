@@ -1,25 +1,30 @@
-var canvas = document.getElementById('canvas');
-var ctx = canvas.getContext('2d');
-var fieldH = $('#canvas').height();
-var fieldW = $('#canvas').width();
-var buttons = {};
-var rotateSpeed = 1;
+var canvas = document.getElementById('canvas'),
+    ctx = canvas.getContext('2d'),
+    fieldH = $('#canvas').height(),
+    fieldW = $('#canvas').width(),
+    buttons = {},
+    rotateSpeed = 0.5,
+    mx,
+    my,
+    lastmx,
+    lastmy,
 
-var points = [];
-var lines = [];
-var lastPoints = [];
-var lastLines = [];
-var axesAngles = {};
-var axesMultificatores = {};
+    points = [],
+    lines = [],
+    lastPoints = [],
+    lastLines = [],
+    lastMouse = false;
+    axesAngles = {},
+    axesMultificatores = {};
 
 
 //start2d('circle');
 //start2d('square');
 
-start3d('cube');
+//start3d('cube');
 //start3d('sphere');
 
-//start4d();
+start4d('tesseract');
 
 
 document.addEventListener('keydown', KeyDown);
@@ -77,7 +82,7 @@ function drawDisplayPoints(displayPoints) {
         let point = displayPoints[i];
         let point3d = points[i];
         
-        let radius = 1;
+        let radius = 3;
         let color = 'black';
         
         if(typeof point3d.color !== 'undefined')
@@ -107,3 +112,15 @@ function convert2Bin(num, string) {
       
   return parseInt(bin);
 }
+
+function mouse(action) {
+    if (action === 'down') {
+        buttons['mouse'] = true;
+    } else if (action === 'up') {
+        buttons['mouse'] = false;
+    }
+}
+onmousemove = function (e) {
+    mx = e.x;
+    my = fieldH - e.y;
+};
