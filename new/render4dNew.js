@@ -1,21 +1,16 @@
+/* global buttons */
+/* global mx */
+/* global my */
+/* global FOV */
+/* global rotateSpeed */
+
 function start4d(typeOfObject) {
-    axesAngles = {
-        x: 0,
-        y: 270,
-        z: 145,
-        w: 236
-    };
-    axesMultificatores = {
-        x: {x: cos(d2R(axesAngles.x)), y: sin(d2R(axesAngles.x))},
-        y: {x: cos(d2R(axesAngles.y)), y: sin(d2R(axesAngles.y))},
-        z: {x: cos(d2R(axesAngles.z)), y: sin(d2R(axesAngles.z))},
-        w: {x: cos(d2R(axesAngles.w)), y: sin(d2R(axesAngles.w))}
-    };
     
-    let center = {x: 0, y: 0, z: 0, w: 0, color: 'red', size: 1};
+    let center = vector4();
+    center.color = 'orange';
     
     if(typeOfObject === 'tesseract') {
-        let returnValue = drawTesseract(150, {x: 0, y: 0, z: 0, w: 0}, lineWidth = 5);
+        let returnValue = drawTesseract(300, {x: 0, y: 0, z: 0, w: 0}, lineWidth = 10, pointSize = 3);
         points = returnValue.points;
         lines = returnValue.lines;
     }
@@ -23,7 +18,9 @@ function start4d(typeOfObject) {
     points.push(center);
     
     setInterval(draw4d, 15);
+    
 }
+
 function drawTesseract(size, center, lineWidth, pointSize, pointColor, lineColor) {
     let decor = setSizesAndColors(lineWidth, pointSize, pointColor, lineColor);
     
@@ -80,23 +77,23 @@ function drawTesseract(size, center, lineWidth, pointSize, pointColor, lineColor
         i = parseInt(i);
         let point = points[i];
         
-        if(point.z === 0) {
-            let line = [i, i+4, decor.lineColor, decor.lineWidth];
-            lines.push(line);
-        }
-        
         if(point.x === 0) {
-            let line = [i, i + 1, decor.lineColor, decor.lineWidth];
+            let line = {firstPoint: i, secondPoint: i + 1, color: 'red', width: decor.lineWidth};
             lines.push(line);
         }
         
         if(point.y === 0) {
-            let line = [i, i + 2, decor.lineColor, decor.lineWidth];
+            let line = {firstPoint: i, secondPoint: i + 2, color: 'green', width: decor.lineWidth};
+            lines.push(line);
+        }
+        
+        if(point.z === 0) {
+            let line = {firstPoint: i, secondPoint: i + 4, color: 'blue', width: decor.lineWidth};
             lines.push(line);
         }
         
         if(point.w === 0) {
-            let line = [i, i + 8, decor.lineColor, decor.lineWidth];
+            let line = {firstPoint: i, secondPoint: i + 8, color: 'yellow', width: decor.lineWidth};
             lines.push(line);
         }
         
@@ -110,25 +107,26 @@ function drawTesseract(size, center, lineWidth, pointSize, pointColor, lineColor
     return {points, lines};
 }
 
+
 function draw4d() {
-    
-    if(lastPoints !== points || lastLines !== lines) {
+    if(lastPoints !== points || lastLines !== lines || lastCamera === camera) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        drawAxes4d();
-        
-        let displayPoints = calcDisplayPoints4d(points);
-        drawLines(displayPoints);
+        let threeDPoints = calc3DPoints(points);
+        let twoDPoints = calc2DPoints(threeDPoints);
     
-        drawDisplayPoints(displayPoints);
+        drawLines(lines, twoDPoints);
+        drawPoints(twoDPoints);
 
         lastLines = lines;
         lastPoints = points;
+        lastCamera = camera;
+        
     }
     
     modify4d();
-    
 }
+
 
 function modify4d() {
     checkMove4d();
@@ -175,27 +173,28 @@ function movePoint4d(point, vector4) {
 }
 
 function checkRotate4d() {
+    
     if(buttons.mouse && (lastmx !== mx || lastmy !== my)) {
+        let difference = {
+            x: mx - lastmx,
+            y: my - lastmy
+        };
+        
         if(buttons[32]) {
-            let difference = {
-                x: mx - lastmx,
-                y: my - lastmy
-            };
             if(lastmx !== mx)
                 points = points = rotatePoints4d(points, points[points.length - 1], 'xw', rotateSpeed * difference.x);
             if(lastmy !== my)
                 points = points = rotatePoints4d(points, points[points.length - 1], 'wz', rotateSpeed * difference.y);
-                points = points = rotatePoints4d(points, points[points.length - 1], 'wx', rotateSpeed * difference.y);
-        } else {
-            let difference = {
-                x: mx - lastmx,
-                y: my - lastmy
-            };
+        } else if(buttons[16]) {
             if(lastmx !== mx)
-                points = points = rotatePoints4d(points, points[points.length - 1], 'xz', rotateSpeed * difference.x);
+                FOV += difference.x/100000;
+        } else {
+            if(lastmx !== mx)
+                camera.rotation.xz += rotateSpeed * difference.x;
+//                points = points = rotatePoints4d(points, points[points.length - 1], 'xz', rotateSpeed * difference.x);
             if(lastmy !== my)
-                points = points = rotatePoints4d(points, points[points.length - 1], 'yz', rotateSpeed * difference.y);
-                points = points = rotatePoints4d(points, points[points.length - 1], 'yx', rotateSpeed * difference.y);
+                camera.rotation.yz += rotateSpeed * difference.y;
+//                points = points = rotatePoints4d(points, points[points.length - 1], 'yz', rotateSpeed * difference.y);
         }
     }
     
@@ -203,9 +202,18 @@ function checkRotate4d() {
     lastmy = my;
     
     if(buttons[68])
-        points = rotatePoints4d(points, points[points.length - 1], 'xw', -rotateSpeed);
+        points = rotatePoints4d(points, points[points.length - 1], 'xw', -rotateSpeed*1.5);
     if(buttons[65])
-        points = rotatePoints4d(points, points[points.length - 1], 'xw', rotateSpeed);
+        points = rotatePoints4d(points, points[points.length - 1], 'xw', rotateSpeed*1.5);
+    if(buttons[87])
+        points = rotatePoints4d(points, points[points.length - 1], 'yw', rotateSpeed*1.5);
+    if(buttons[83])
+        points = rotatePoints4d(points, points[points.length - 1], 'yw', -rotateSpeed*1.5);
+    if(buttons[81])
+        points = rotatePoints4d(points, points[points.length - 1], 'zw', rotateSpeed*1.5);
+    if(buttons[69])
+        points = rotatePoints4d(points, points[points.length - 1], 'zw', -rotateSpeed*1.5);
+    
 }
 function rotatePoints4d(points, center, plane, ang) {
     let returnValue = [];
@@ -309,66 +317,21 @@ function rotatePoint4d(point, center, plane, ang) {
     return returnValue;
 }
 
-function calcDisplayPoints4d(points) {
+function calc3DPoints(points) {
     let returnValue = [];
     
-    for(let point in points) {
-        returnValue.push(calcDisplayPoint4d(points[point]));
+    for(let i in points) {
+        returnValue.push(calc3DPoint(points[i]));
     }
     
     return returnValue;
 }
-function calcDisplayPoint4d(point) {
-    let x = point.x * axesMultificatores.x.x + 
-            point.y * axesMultificatores.y.x + 
-            point.w * axesMultificatores.z.x + 
-            point.w * axesMultificatores.w.x;
+function calc3DPoint(point) {
+    let returnPoint = {x: point.x, y: point.y, z: point.z, color: point.color, size: point.size};
     
-    let y = point.x * axesMultificatores.x.y + 
-            point.y * axesMultificatores.y.y + 
-            point.z * axesMultificatores.z.y + 
-            point.w * axesMultificatores.w.y;
+    returnPoint.x += returnPoint.x*FOV*point.w;
+    returnPoint.y += returnPoint.y*FOV*point.w;
+    returnPoint.z += returnPoint.z*FOV*point.w;
     
-    x += fieldW / 2;
-    y += fieldH / 2;
-    
-    return {x, y};
-}
-
-function drawAxes4d() {
-    
-    ctx.lineWidth = 3;
-    
-    ctx.beginPath();
-    ctx.strokeStyle = 'red';
-    ctx.moveTo(0 + fieldW/2, 0 + fieldH/2);
-    ctx.lineTo(1000 * axesMultificatores.x.x + fieldW/2, 1000 * axesMultificatores.x.y + fieldH/2);
-    ctx.stroke();
-    ctx.closePath();
-    
-    ctx.beginPath();
-    ctx.strokeStyle = 'green';
-    ctx.moveTo(0 + fieldW/2, 0 + fieldH/2);
-    ctx.lineTo(1000 * axesMultificatores.y.x + fieldW/2, 1000 * axesMultificatores.y.y + fieldH/2);
-    ctx.stroke();
-    ctx.closePath();
-    
-    ctx.beginPath();
-    ctx.strokeStyle = 'blue';
-    ctx.moveTo(0 + fieldW/2, 0 + fieldH/2);
-    ctx.lineTo(1000 * axesMultificatores.z.x + fieldW/2, 1000 * axesMultificatores.z.y + fieldH/2);
-    ctx.stroke();
-    ctx.closePath();
-    
-    ctx.beginPath();
-    ctx.strokeStyle = 'yellow';
-    ctx.moveTo(0 + fieldW/2, 0 + fieldH/2);
-    ctx.lineTo(1000 * axesMultificatores.w.x + fieldW/2, 1000 * axesMultificatores.w.y + fieldH/2);
-    ctx.stroke();
-    ctx.closePath();
-    
-    ctx.strokeStyle = 'black';
-    
-    ctx.lineWidth = 1;
-    
+    return returnPoint;
 }

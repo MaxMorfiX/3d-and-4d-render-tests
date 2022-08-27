@@ -2,14 +2,12 @@ var canvas = document.getElementById('canvas'),
     ctx = canvas.getContext('2d'),
     fieldH = $('#canvas').height(),
     fieldW = $('#canvas').width(),
-    buttons = {},
     rotateSpeed = 0.5,
-    mx,
-    my,
     lastmx,
     lastmy,
 
     points = [],
+    axPoints = [];
     lines = [],
     lastPoints = [],
     lastLines = [],
@@ -26,18 +24,6 @@ var canvas = document.getElementById('canvas'),
 
 start4d('tesseract');
 
-
-document.addEventListener('keydown', KeyDown);
-document.addEventListener('keyup', KeyUp);
-
-function KeyDown(e) {
-    buttons[e.which] = true;
-}
-function KeyUp(e) {
-    if (buttons[e.which]) {
-        buttons[e.which] = false;
-    }
-}
 function drawLines(displayPoints) {
     
     for(let line in lines) {
@@ -101,26 +87,3 @@ function drawDisplayPoints(displayPoints) {
         ctx.closePath();
     }
 }
-
-
-
-function convert2Bin(num, string) {
-  let bin = num.toString(2);
-  
-  if(string)
-      return bin;
-      
-  return parseInt(bin);
-}
-
-function mouse(action) {
-    if (action === 'down') {
-        buttons['mouse'] = true;
-    } else if (action === 'up') {
-        buttons['mouse'] = false;
-    }
-}
-onmousemove = function (e) {
-    mx = e.x;
-    my = fieldH - e.y;
-};

@@ -9,6 +9,7 @@ function start3d(typeOfObject) {
         y: {x: cos(d2R(axesAngles.y)), y: sin(d2R(axesAngles.y))},
         z: {x: cos(d2R(axesAngles.z)), y: sin(d2R(axesAngles.z))}
     };
+    axPoints = [{x: 1000, y: 0, z: 0}, {x: 0, y: 1000, z: 0}, {x: 0, y: 0, z: 1000}];
     
     let center = {x: 0, y: 0, z: 0, color: 'red', size: 1};
     
@@ -86,18 +87,18 @@ function drawCube(size, center, lineWidth, pointSize, pointColor, lineColor) {
         i = parseInt(i);
         let point = points[i];
         
-        if(points[i].z === 0) {
-            let line = [i, i+4, decor.lineColor, decor.lineWidth];
+        if(point.x === 0) {
+            let line = [i, i + 1, 'red', decor.lineWidth];
             lines.push(line);
         }
         
-        if(points[i].x === 0) {
-            let line = [i, i + 1, decor.lineColor, decor.lineWidth];
+        if(point.y === 0) {
+            let line = [i, i + 2, 'green', decor.lineWidth];
             lines.push(line);
         }
         
-        if(points[i].y === 0) {
-            let line = [i, i + 2, decor.lineColor, decor.lineWidth];
+        if(point.z === 0) {
+            let line = [i, i+4, 'blue', decor.lineWidth];
             lines.push(line);
         }
         
@@ -189,7 +190,7 @@ function draw() {
     if(lastPoints !== points || lastLines !== lines) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-//        drawAxes();
+        drawAxes();
         
         let displayPoints = calcDisplayPoints(points);
         drawLines(displayPoints);
@@ -237,11 +238,16 @@ function checkRotate() {
                 x: mx - lastmx,
                 y: my - lastmy
             };
-            if(lastmx !== mx)
+            if(lastmx !== mx) {
                 points = points = rotatePoints(points, points[points.length - 1], 'xz', rotateSpeed * difference.x);
-            if(lastmy !== my)
+                
+                axPoints = rotatePoints(axPoints, {x: 0, y: 0, z: 0}, 'xz', rotateSpeed * difference.x);
+            } if(lastmy !== my)
                 points = points = rotatePoints(points, points[points.length - 1], 'yz', rotateSpeed * difference.y);
                 points = points = rotatePoints(points, points[points.length - 1], 'yx', rotateSpeed * difference.y);
+                
+                axPoints = rotatePoints(axPoints, {x: 0, y: 0, z: 0}, 'yz', rotateSpeed * difference.x);
+                axPoints = rotatePoints(axPoints, {x: 0, y: 0, z: 0}, 'yx', rotateSpeed * difference.x);
         }
     }
     

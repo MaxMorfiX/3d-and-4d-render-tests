@@ -1,6 +1,11 @@
-var fieldH = $('#field').height();
-const PI = Math.PI;
-const multForMoveByVector = PI / 180;
+const PI = Math.PI,
+    multForMoveByVector = PI / 180;
+    
+var fieldH = $('#field').height(),
+    buttons = {},
+    mouse,
+    mx,
+    my;
 
 function fitToSizeJQbottom(fieldFinder) {
     fieldH = $(fieldFinder).height();
@@ -158,4 +163,92 @@ function log(value, string) {
         value = JSON.stringify(value);
     }
     console.log(value);
+}
+
+function convert2Bin(num, string) {
+  let bin = num.toString(2);
+  
+  if(string)
+      return bin;
+      
+  return parseInt(bin);
+}
+
+function mouseClick(action) {
+    if (action === 'down') {
+        buttons.mouse = true;
+    } else if (action === 'up') {
+        buttons.mouse = false;
+    }
+}
+onmousemove = function (e) {
+    mx = e.x;
+    my = fieldH - e.y;
+};
+
+document.addEventListener('keydown', KeyDown);
+document.addEventListener('keyup', KeyUp);
+
+function KeyDown(e) {
+    buttons[e.which] = true;
+}
+function KeyUp(e) {
+    if (buttons[e.which]) {
+        buttons[e.which] = false;
+    }
+}
+
+function vector3(x, y, z) {
+    let returnValue = {x: 0, y: 0, z: 0};
+    
+    if(typeof x !== 'undefined') {
+        if(y)
+            returnValue = {x: x, y: x, z: x};
+        else
+            returnValue.x = x;
+    }
+    if(typeof y !== 'undefined')
+        returnValue.y = y;
+    if(typeof z !== 'undefined')
+        returnValue.z = z;
+    
+    return returnValue;
+}
+function vector4(x, y, z, w) {
+    let returnValue = {x: 0, y: 0, z: 0, w: 0};
+    
+    if(typeof x !== 'undefined') {
+        if(y)
+            returnValue = {x: x, y: x, z: x, w: x};
+        else
+            returnValue.x = x;
+    }
+    if(typeof y !== 'undefined')
+        returnValue.y = y;
+    if(typeof z !== 'undefined')
+        returnValue.z = z;
+    if(typeof w !== 'undefined')
+        returnValue.w = w;
+    
+    return returnValue;
+}
+function vector5(x, y, z, w, v) {
+    let returnValue = {x: 0, y: 0, z: 0, w: 0, v: 0};
+    
+    if(typeof x !== 'undefined') {
+        if(y)
+            returnValue = {x: x, y: x, z: x, w: x, v: x};
+        else
+            returnValue.x = x;
+    }
+    if(typeof y !== 'undefined')
+        returnValue.y = y;
+    if(typeof z !== 'undefined')
+        returnValue.z = z;
+    if(typeof w !== 'undefined')
+        returnValue.w = w;
+    if(typeof v !== 'undefined')
+        returnValue.v = v;
+    
+    return returnValue;
 }
