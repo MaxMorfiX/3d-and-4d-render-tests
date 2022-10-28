@@ -350,7 +350,7 @@ function drawGuideText4d() {
     ctx.fillText('Hello There!', 10, 25);
     ctx.fillText('in this project I did 4d rendering', 10, 40);
     ctx.fillText('hold & move your mouse to rotate cube (4d cube - tesseract)', 10, 55);
-    ctx.fillText('press wasdqr to rotate it in 4th dimension', 10, 70);
+    ctx.fillText('press wasdqe to rotate it in 4th dimension', 10, 70);
     ctx.fillText('or hold spacebar & mouse and move mouse to rotate in 4th dm', 10, 85);
     ctx.fillText('(press H to hide guide)', 10, 100);
     ctx.closePath();
