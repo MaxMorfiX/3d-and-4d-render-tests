@@ -3,7 +3,7 @@ function start5d(typeOfObject) {
     let center = vector5();
     
     if(typeOfObject === 'penteract') {
-        let returnValue = drawPenteract(300, center, lineWidth = 5);
+        let returnValue = drawPenteract(300, center, lineWidth = 5, pointSize = 4);
         points = returnValue.points;
         lines = returnValue.lines;
     }
@@ -118,8 +118,8 @@ function draw5d() {
         let threeDPoints = calc3DPoints(fourDPoints);
         let twoDPoints = calc2DPoints(threeDPoints);
     
-//        drawDisplayPoints(displayPoints);
         drawLines(lines, twoDPoints);
+        drawPoints(twoDPoints);
 
         lastLines = lines;
         lastPoints = points;

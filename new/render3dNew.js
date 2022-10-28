@@ -16,6 +16,20 @@ function start3d(typeOfObject) {
         );
         points = returnValue.points;
         lines = returnValue.lines;
+    } else if(typeOfObject === 'cubeNew') {
+        let returnValue = drawNewCube(300, 10, center,
+            lineWidth = 10,
+            pointSize = 3
+        );
+        points = returnValue.points;
+        lines = returnValue.lines;
+    } else if(typeOfObject === 'sphere') {
+        let returnValue = drawSphere(300, 10, center,
+            lineWidth = 10,
+            pointSize = 3
+        );
+        points = returnValue.points;
+        lines = returnValue.lines;
     }
     
     points.push(center);
@@ -101,6 +115,68 @@ function drawCube(size, center, lineWidth, pointSize, pointColor, lineColor) {
     return {points, lines};
     
 }
+function drawNewCube(size, quality, center, lineWidth = 1, pointSize = 3, pointColor = 'black', lineColor = 'black') {
+    
+    let decor = {lineWidth, pointSize, pointColor, lineColor};
+    
+    let points = [];
+    let lines = [];
+    
+    let step = size/quality;
+    
+    for(let z=0; z < quality; z++) {
+        for(let y=0; y < quality; y++) {
+            for(let x=0; x < quality; x++) {
+                
+                if(!(x === 0 || x === quality-1 || y === 0 || y === quality-1 || z === 0 || z === quality-1))
+                    continue;
+                
+                let point = vector3(x*step, y*step, z*step);
+                point.color = decor.pointColor;
+                point.size = decor.pointSize;
+                
+                if(center !== false) {
+                    point.x = point.x - size/2 + center.x;
+                    point.y = point.y - size/2 + center.y;
+                    point.z = point.z - size/2 + center.z;
+                }
+                
+                points.push(point);
+                
+            }
+        }
+    }
+    
+    
+    return {points, lines};
+    
+}
+function drawSphere(size, quality, center, lineWidth = 1, pointSize = 3, pointColor = 'black', lineColor = 'black') {    
+    let cube = drawNewCube(size, quality, false, lineWidth, pointSize, pointColor, lineColor);
+    
+    let points = [];
+    let lines = [];
+    
+    for(let i in cube.points) {
+        let point = cube.points[i];
+        
+        let pos2 = vector3(point.x*point.x, point.y*point.y, point.z*point.z);
+        
+        let pos = {
+            x: point.x * Math.sqrt(1 - (pos2.y + pos2.z) / 2 + (pos2.y*pos2.z) / 3),
+            y: point.y * Math.sqrt(1 - (pos2.x + pos2.z) / 2 + (pos2.x*pos2.z) / 3),
+            z: point.y * Math.sqrt(1 - (pos2.x + pos2.y) / 2 + (pos2.x*pos2.y) / 3)
+        };
+        
+        point.x = pos.x - size/2 + center.x;
+        point.y = pos.y - size/2 + center.y;
+        point.z = pos.z - size/2 + center.z;
+        
+        points.push(point);
+    }
+    
+    return {points, lines};
+}
 
 function draw3d() {
     
@@ -128,17 +204,21 @@ function modify() {
 function checkRotate() {
     
     if(buttons.mouse) {
-        if(lastmx !== mx || lastmy !== my) {
-            let difference = {
-                x: mx - lastmx,
-                y: my - lastmy
-            };
+        
+        let difference = {
+            x: mx - lastmx,
+            y: my - lastmy
+        };
+        
+        if(buttons[16]) {
+            if(lastmx !== mx) {
+//                FOV += difference.x/100000;
+            }
+        } else if(lastmx !== mx || lastmy !== my) {
             if(lastmx !== mx) {
                 camera.rotation.xz += rotateSpeed * difference.x;
-//                points = points = rotatePoints(points, points[points.length - 1], 'xz', rotateSpeed * difference.x);
             } if(lastmy !== my)
                 camera.rotation.yz += rotateSpeed * difference.y;
-//                points = points = rotatePoints(points, points[points.length - 1], 'yz', rotateSpeed * difference.y);
         }
     }
     
@@ -147,17 +227,19 @@ function checkRotate() {
 }
 function checkMove() {
     if(buttons[38])
-        points = movePoints(points, {x: 0, y: -1, z: 0});
+        camera.pos = movePoint(camera.pos, vector3(0, 0, camera.speed));
     if(buttons[40])
-        points = movePoints(points, {x: 0, y: 1, z: 0});
+        camera.pos = movePoint(camera.pos, vector3(0, 0, -camera.speed));
     if(buttons[37])
-        points = movePoints(points, {x: 1, y: 0, z: 0});
+        camera.pos = movePoint(camera.pos, vector3(-camera.speed, 0, 0));
     if(buttons[39])
-        points = movePoints(points, {x: -1, y: 0, z: 0});
+        camera.pos = movePoint(camera.pos, vector3(camera.speed, 0, 0));
     if(buttons[190])
-        points = movePoints(points, {x: 0, y: 0, z: -1});
+        camera.pos = movePoint(camera.pos, vector3(0, camera.speed, 0));
     if(buttons[191])
-        points = movePoints(points, {x: 0, y: 0, z: 1});
+        camera.pos = movePoint(camera.pos, vector3(0, -camera.speed, 0));
+    
+//    log(camera.pos);
 }
 
 function rotatePoints(points, center, plane, ang) {
@@ -254,9 +336,13 @@ function calc2DPoints(points) {
 }
 function calc2DPoint(point) {
     
-    point = rotatePoint(point, camera.pos, 'xy', camera.rotation.xy);
-    point = rotatePoint(point, camera.pos, 'xy', camera.rotation.xz);
-    point = rotatePoint(point, camera.pos, 'yz', camera.rotation.yz);
+    point = rotatePoint(point, camera.pos, 'xy', -camera.rotation.xy);
+    point = rotatePoint(point, camera.pos, 'xy', -camera.rotation.xz);
+    point = rotatePoint(point, camera.pos, 'yz', -camera.rotation.yz);
+    
+    point.x += camera.pos.x;
+    point.y += camera.pos.y;
+    point.z += camera.pos.z;
     
     let returnPoint = {x: point.x + camera.pos.x, y: point.y + camera.pos.y, color: point.color, size: point.size};
     

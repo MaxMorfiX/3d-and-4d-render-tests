@@ -1,4 +1,4 @@
-
+let drawGuideText = true;
 
 function drawLines(lines, points) {
     
@@ -67,3 +67,9 @@ function drawPoint(point) {
     ctx.stroke();
     ctx.closePath();
 }
+
+document.addEventListener("keypress", function(e) {
+    if(e.which === 72 || e.which === 104) {
+        drawGuideText = false;
+    }
+});

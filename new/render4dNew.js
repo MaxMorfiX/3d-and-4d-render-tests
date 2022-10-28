@@ -8,6 +8,7 @@ function start4d(typeOfObject) {
     
     let center = vector4();
     center.color = 'orange';
+    center.size = 0;
     
     if(typeOfObject === 'tesseract') {
         let returnValue = drawTesseract(300, {x: 0, y: 0, z: 0, w: 0}, lineWidth = 10, pointSize = 3);
@@ -117,6 +118,9 @@ function draw4d() {
     
         drawLines(lines, twoDPoints);
         drawPoints(twoDPoints);
+        if(drawGuideText) {
+            drawGuideText4d();
+        }
 
         lastLines = lines;
         lastPoints = points;
@@ -334,4 +338,20 @@ function calc3DPoint(point) {
     returnPoint.z += returnPoint.z*FOV*point.w;
     
     return returnPoint;
+}
+
+
+
+
+function drawGuideText4d() {
+    ctx.beginPath();
+    ctx.fillStyle = 'black';
+    ctx.font = "15px Arial";
+    ctx.fillText('Hello There!', 10, 25);
+    ctx.fillText('in this project I did 4d rendering', 10, 40);
+    ctx.fillText('hold & move your mouse to rotate cube (4d cube - tesseract)', 10, 55);
+    ctx.fillText('press wasdqr to rotate it in 4th dimension', 10, 70);
+    ctx.fillText('or hold spacebar & mouse and move mouse to rotate in 4th dm', 10, 85);
+    ctx.fillText('(press H to hide guide)', 10, 100);
+    ctx.closePath();
 }
