@@ -319,8 +319,6 @@ var map = new RayMap({
   wallTextures: [wallTex]
 });
 
-miniMap.LoadMap(map);
-
 var camera = new RayCamera();
 camera.lightRange = 200;
 // camera.resolution = 32;
@@ -424,7 +422,7 @@ var pixelCountInFloat = 0.2; //from 0 to 1, then calculates the camera resolutio
 let pixStretchMult = 0.0;
 
 function handleAnimations() {
-  handleDisplaySize();
+  // handleDisplaySize();
   handlePixelizationAnimation();
   handleStretchingAnimation();
 }
