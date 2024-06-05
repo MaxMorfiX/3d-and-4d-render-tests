@@ -11,4 +11,7 @@
       black 60%,
       #333 100%
     );
+
+    min-height: 100%;
+    min-width: 100%;
   }
