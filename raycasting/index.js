@@ -10,6 +10,13 @@
 //   (the other bane of games).
 // - NOTE: Runs a heck of a lot better in node-webkit
 // =====================
+// FORKED BY MAXMORFIX from https://codepen.io/xgundam05/pen/VwbPWO
+// Notes:
+// - downgraded the engine a bit (now it doesn't have textures,
+//   and it renders only based on distance to an object
+// - added animations to the engine - pixelization, etc
+//   (see bottom of the code)
+// =====================
 
 Number.prototype.clamp = function (min, max) {
   return Math.min(Math.max(this, min), max);
@@ -124,7 +131,7 @@ RayMap.prototype = {
 // The Camera
 // ==========================
 function RayCamera(options) {
-  this.fov = Math.PI * 0.4;
+  this.fov = Math.PI * 0.4 * 1;
   this.range = 14;
   this.lightRange = 5;
   this.position = { x: 0, y: 0 };
@@ -152,7 +159,7 @@ function RaycastRenderer(options) {
   this.height = 360;
   this.resolution = 320;
   this.textureSmoothing = false;
-  this.domElement = document.createElement('canv');
+  this.domElement = options.domElement || document.createElement('canv');
 
   if (options) {
     for (var prop in options)
@@ -217,6 +224,7 @@ RaycastRenderer.prototype = {
       this.ctx.globalAlpha = 1;
 
       let op = 1 / Math.max((step.distance + step.shading) / camera.lightRange, 0); //opacity
+      op *= op/100;
       this.ctx.fillStyle = `rgb(${op},${op},${op}`;
 
       // this.ctx.fillRect(left, wall.top, width, 10);
@@ -229,6 +237,7 @@ RaycastRenderer.prototype = {
 
       let h1 = renderer.spacing;
       let h2 = wall.height;
+      // let h2 = wall.height.clamp(0, renderer.height);
 
       let eased = ease(pixStretchMult);
 
@@ -310,13 +319,17 @@ var map = new RayMap({
   wallTextures: [wallTex]
 });
 
+miniMap.LoadMap(map);
+
 var camera = new RayCamera();
 camera.lightRange = 200;
 // camera.resolution = 32;
 
 var renderer = new RaycastRenderer({
-  width: 640,
-  height: 360,
+  // width: 640,
+  // height: 360,
+  width: window.innerWidth,
+  height: window.innerHeight,
   textureSmoothing: false,
   domElement: canvas,
   resolution: 10
@@ -388,8 +401,13 @@ function UpdateRender(time) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     renderer.Render(camera, map);
     ctx.save();
-    ctx.translate(50, 100);
-    ctx.rotate(-(player.direction - Math.PI * 0.5));
+    // ctx.translate(50, 100);
+
+    
+    // ctx.rotate(-(player.direction - Math.PI * 0.5));
+    // ctx.translate(player.position.x*miniMap.cellSize, player.position.y*miniMap.cellSize);
+
+    // miniMap.RenderRelMap(ctx, mapPos, player.position);
     ctx.restore();
   }
   handleAnimations();
@@ -402,12 +420,19 @@ requestAnimationFrame(UpdateRender);
 
 //-----------------------------------------------------------------------------------------//
 
-var pixelCountInFloat = 0.2; //from 0 to 1, then calculates the camera resolution based on thaty
+var pixelCountInFloat = 0.2; //from 0 to 1, then calculates the camera resolution based on that
 let pixStretchMult = 0.0;
 
 function handleAnimations() {
+  handleDisplaySize();
   handlePixelizationAnimation();
   handleStretchingAnimation();
+}
+
+function handleDisplaySize() {
+  renderer.width = renderer.domElement.width = window.innerWidth;
+  renderer.height = renderer.domElement.height = window.innerHeight;
+  updateRendererResolution();
 }
 
 function handlePixelizationAnimation() {
