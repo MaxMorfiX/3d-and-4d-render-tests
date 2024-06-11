@@ -408,6 +408,9 @@ function UpdateRender(time) {
     // miniMap.RenderRelMap(ctx, mapPos, player.position);
     ctx.restore();
   }
+
+  renderMinimap(ctx, player, map, 0.1, { width: 200, height: 200 });
+
   handleAnimations();
   requestAnimationFrame(UpdateRender);
 }
@@ -417,6 +420,53 @@ requestAnimationFrame(UpdateRender);
 
 
 //-----------------------------------------------------------------------------------------//
+
+function renderMinimap(ctx, player, map, scale, size) {
+    const miniMapWidth = size.width;
+    const miniMapHeight = size.height;
+
+    // Define the minimap's position on the screen
+    const miniMapX = 10;
+    const miniMapY = 10;
+
+    // Draw the minimap background
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.fillRect(miniMapX, miniMapY, miniMapWidth, miniMapHeight);
+
+    // Calculate the size of each cell on the minimap
+    const cellSize = miniMapWidth / map.width;
+
+    ctx.fillStyle = "white";
+
+    // Draw the map on the minimap
+    for (let y = 0; y < map.height; y++) {
+        for (let x = 0; x < map.width; x++) {
+            if (map.Get(x, y) > 0) {
+                ctx.fillRect(miniMapX + x * cellSize, miniMapY + y * cellSize, cellSize, cellSize);
+            }
+        }
+    }
+
+    // Draw the player's position on the minimap
+    ctx.fillStyle = "red";
+    const playerX = player.position.x * cellSize;
+    const playerY = player.position.y * cellSize;
+    ctx.beginPath();
+    ctx.arc(miniMapX + playerX, miniMapY + playerY, cellSize / 2, 0, 2 * Math.PI);
+    ctx.fill();
+
+    // Draw the player's direction
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(miniMapX + playerX, miniMapY + playerY);
+    ctx.lineTo(
+        miniMapX + playerX + Math.cos(player.direction) * cellSize,
+        miniMapY + playerY + Math.sin(player.direction) * cellSize
+    );
+    ctx.stroke();
+}
+
+
 
 var pixelCountInFloat = 0.2; //from 0 to 1, then calculates the camera resolution based on that
 let pixStretchMult = 0.0;
