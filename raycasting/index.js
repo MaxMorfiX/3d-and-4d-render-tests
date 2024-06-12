@@ -16,6 +16,7 @@
 //   and it renders only based on distance to an object
 // - added animations to the engine - pixelization, etc
 //   (see bottom of the code)
+// - reworked completely the minimap
 // =====================
 
 Number.prototype.clamp = function (min, max) {
@@ -409,7 +410,7 @@ function UpdateRender(time) {
     ctx.restore();
   }
 
-  renderMinimap(ctx, player, map, 0.1, { width: 200, height: 200 });
+  renderMinimap(ctx, player, map, 10, { width: 200, height: 200 });
 
   handleAnimations();
   requestAnimationFrame(UpdateRender);
@@ -421,54 +422,80 @@ requestAnimationFrame(UpdateRender);
 
 //-----------------------------------------------------------------------------------------//
 
+// Utility function to draw a line on the minimap
+function drawLine(ctx, x1, y1, x2, y2, color) {
+  ctx.strokeStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+}
+
+// Function to render the minimap
 function renderMinimap(ctx, player, map, scale, size) {
-    const miniMapWidth = size.width;
-    const miniMapHeight = size.height;
+    const cellSize = scale;
 
-    // Define the minimap's position on the screen
-    const miniMapX = 10;
-    const miniMapY = 10;
+    // Save the context state
+    ctx.save();
 
-    // Draw the minimap background
-    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-    ctx.fillRect(miniMapX, miniMapY, miniMapWidth, miniMapHeight);
+    // Translate and scale the context for the minimap
+    ctx.translate(10, 10);
+    ctx.scale(cellSize, cellSize);
 
-    // Calculate the size of each cell on the minimap
-    const cellSize = miniMapWidth / map.width;
-
-    ctx.fillStyle = "white";
-
-    // Draw the map on the minimap
+    // Draw objects (walls) in white
+    ctx.fillStyle = 'white';
     for (let y = 0; y < map.height; y++) {
         for (let x = 0; x < map.width; x++) {
             if (map.Get(x, y) > 0) {
-                ctx.fillRect(miniMapX + x * cellSize, miniMapY + y * cellSize, cellSize, cellSize);
+                ctx.fillRect(x, y, 1, 1);
             }
         }
     }
 
-    // Draw the player's position on the minimap
-    ctx.fillStyle = "red";
-    const playerX = player.position.x * cellSize;
-    const playerY = player.position.y * cellSize;
+    // Draw player in blue
+    ctx.fillStyle = 'blue';
     ctx.beginPath();
-    ctx.arc(miniMapX + playerX, miniMapY + playerY, cellSize / 2, 0, 2 * Math.PI);
+    ctx.arc(player.position.x, player.position.y, 0.5, 0, Math.PI * 2); // 0.5 is the radius of the circle
     ctx.fill();
 
-    // Draw the player's direction
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-    ctx.moveTo(miniMapX + playerX, miniMapY + playerY);
-    ctx.lineTo(
-        miniMapX + playerX + Math.cos(player.direction) * cellSize,
-        miniMapY + playerY + Math.sin(player.direction) * cellSize
-    );
-    ctx.stroke();
+    // Draw player direction line in red
+    const directionLength = 3;
+    const fovLength = 10;
+    const fov = camera.fov / 2;
+
+    const dx = Math.cos(player.direction) * 0.4;
+    const dy = Math.sin(player.direction) * 0.4;
+
+    ctx.lineWidth = 0.2;
+
+    drawLine(ctx, player.position.x, player.position.y, player.position.x + dx * directionLength, player.position.y + dy * directionLength, 'blue');
+
+    // Draw FOV lines
+    const fovLeft = player.direction - fov;
+    const fovRight = player.direction + fov;
+
+    let dxLeft = Math.cos(fovLeft) * fovLength + player.position.x;
+    let dyLeft = Math.sin(fovLeft) * fovLength + player.position.y;
+    let dxRight = Math.cos(fovRight) * fovLength + player.position.x;
+    let dyRight = Math.sin(fovRight) * fovLength + player.position.y;
+
+    // dxLeft = dxLeft.clamp(0, 200);
+    // dyLeft = dyLeft.clamp(0, 200);
+    // dxRight = dxRight.clamp(0, 200);
+    // dyRight = dyRight.clamp(0, 200);
+    
+    ctx.lineWidth = 0.1;
+
+    drawLine(ctx, player.position.x, player.position.y, dxLeft, dyLeft, 'red');
+    drawLine(ctx, player.position.x, player.position.y, dxRight, dyRight, 'red');
+
+    // Restore the context state
+    ctx.restore();
 }
 
 
 
-var pixelCountInFloat = 0.2; //from 0 to 1, then calculates the camera resolution based on that
+var pixelCountInFloat = 0.4; //from 0 to 1, then calculates the camera resolution based on that
 let pixStretchMult = 0.0;
 
 function handleAnimations() {
@@ -485,9 +512,9 @@ function handleDisplaySize() {
 
 function handlePixelizationAnimation() {
   if (controls.states.pixelizationAnimationForward) {
-    pixelCountInFloat += 0.001;
+    pixelCountInFloat += 0.005;
   } else if (controls.states.pixelizationAnimationBackward) {
-    pixelCountInFloat -= 0.001;
+    pixelCountInFloat -= 0.005;
   }
 
   pixelCountInFloat = pixelCountInFloat.clamp(0, 1);
@@ -516,7 +543,8 @@ function handleStretchingAnimation() {
 updateRendererResolution();
 function updateRendererResolution() {
 
-  let eased = ease(pixelCountInFloat + 0.01);
+  let eased = easeIn(pixelCountInFloat);
+  // eased = eased.clamp(0.003, 1);
 
   // console.log(eased);
 
@@ -530,4 +558,8 @@ function updateRendererResolution() {
 
 function ease(x) {
   return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+}
+
+function easeIn(x) {
+  return x === 0 ? 0 : Math.pow(2, 10 * x - 10);
 }
